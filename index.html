@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fake News Detector</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-light: #5a75f1;
+            --secondary: #7209b7;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --warning: #f8961e;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --white: #ffffff;
+            --gradient: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f5f7fa;
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode {
+            background-color: #121212;
+            color: #f5f5f5;
+        }
+
+        body.dark-mode .card {
+            background: rgba(30, 30, 30, 0.9);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body.dark-mode textarea,
+        body.dark-mode input[type="url"] {
+            background-color: #2d2d2d;
+            color: #f5f5f5;
+            border-color: #444;
+        }
+
+        body.dark-mode .feature-card {
+            background: rgba(30, 30, 30, 0.9);
+        }
+
+        body.dark-mode .article-preview {
+            background-color: rgba(40, 40, 40, 0.7);
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+            padding-bottom: 1.5rem;
+            position: relative;
+        }
+        
+        header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: var(--gradient);
+            border-radius: 2px;
+            animation: gradientBG 3s ease infinite;
+            background-size: 200% 200%;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        h1 {
+            color: var(--primary);
+            font-size: 2.8rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: inline-block;
+        }
+        
+        .subtitle {
+            color: var(--gray);
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 
+                0 10px 30px rgba(0, 0, 0, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: var(--gradient);
+            background-size: 200% 200%;
+            animation: gradientBG 3s ease infinite;
+        }
+        
+        .input-group {
+            margin-bottom: 1.8rem;
+            position: relative;
+        }
+
+        .floating {
+            position: relative;
+            margin-bottom: 2rem;
+        }
+
+        .floating input, 
+        .floating textarea {
+            padding: 1.5rem 1.2rem 0.6rem !important;
+            height: auto;
+        }
+
+        .floating label {
+            position: absolute;
+            top: 0;
+            left: 0;
+            padding: 1rem 1.2rem;
+            color: var(--gray);
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        .floating input:focus ~ label,
+        .floating input:not(:placeholder-shown) ~ label,
+        .floating textarea:focus ~ label,
+        .floating textarea:not(:placeholder-shown) ~ label {
+            transform: translateY(-0.5rem) scale(0.85);
+            transform-origin: left top;
+            color: var(--primary);
+            padding: 0 0.2rem;
+            background: var(--white);
+            left: 0.8rem;
+        }
+
+        body.dark-mode .floating input:focus ~ label,
+        body.dark-mode .floating input:not(:placeholder-shown) ~ label,
+        body.dark-mode .floating textarea:focus ~ label,
+        body.dark-mode .floating textarea:not(:placeholder-shown) ~ label {
+            background: rgba(30, 30, 30, 0.9);
+        }
+        
+        textarea, input[type="url"] {
+            width: 100%;
+            padding: 1.2rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 1rem;
+            resize: vertical;
+            transition: all 0.3s ease;
+            background-color: #fafafa;
+        }
+        
+        textarea {
+            min-height: 200px;
+        }
+        
+        textarea:focus, input[type="url"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+            background-color: var(--white);
+        }
+        
+        .btn {
+            display: inline-block;
+            background: var(--gradient);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(67, 97, 238, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%, -50%);
+            transform-origin: 50% 50%;
+        }
+
+        .btn:focus:not(:active)::after {
+            animation: ripple 0.6s ease-out;
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(20, 20);
+                opacity: 0;
+            }
+        }
+        
+        .btn-block {
+            display: block;
+            width: 100%;
+        }
+        
+        .btn-secondary {
+            background: var(--gray);
+            box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+        }
+        
+        .btn-secondary:hover {
+            box-shadow: 0 8px 25px rgba(108, 117, 125, 0.4);
+        }
+        
+        .result-card {
+            margin-top: 2.5rem;
+            padding: 2rem;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .real {
+            background-color: rgba(76, 201, 240, 0.08);
+            border-left: 5px solid var(--success);
+        }
+        
+        .fake {
+            background-color: rgba(247, 37, 133, 0.08);
+            border-left: 5px solid var(--danger);
+        }
+        
+        .result-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .confidence-meter {
+            width: 100%;
+            height: 20px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gauge {
+            height: 100%;
+            border-radius: 10px;
+            background: var(--gradient);
+            width: calc(var(--confidence) * 1%);
+            transition: width 1s ease-out;
+            position: relative;
+        }
+
+        .gauge::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 5px;
+            background: white;
+            box-shadow: 0 0 10px white;
+        }
+
+        .confidence-meter span {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        .stats {
+            color: var(--gray);
+            font-size: 0.95rem;
+            margin-top: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .stats svg {
+            width: 18px;
+            height: 18px;
+        }
+        
+        .alert {
+            padding: 1.2rem;
+            border-radius: 10px;
+            margin-bottom: 1.8rem;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        .alert svg {
+            flex-shrink: 0;
+            width: 24px;
+            height: 24px;
+        }
+        
+        .alert-success {
+            background-color: rgba(76, 201, 240, 0.15);
+            color: #0e7490;
+            border-left: 4px solid var(--success);
+        }
+        
+        .alert-error {
+            background-color: rgba(247, 37, 133, 0.15);
+            color: #be185d;
+            border-left: 4px solid var(--danger);
+        }
+        
+        .alert-info {
+            background-color: rgba(67, 97, 238, 0.15);
+            color: #3730a3;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .model-stats {
+            text-align: center;
+            color: var(--gray);
+            font-size: 1rem;
+            margin-top: 1.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .model-stats strong {
+            color: var(--primary);
+            font-weight: 600;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .tab {
+            padding: 1rem 2rem;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--gray);
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .tab.active {
+            color: var(--primary);
+            font-weight: 600;
+        }
+        
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--gradient);
+            border-radius: 3px 3px 0 0;
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .article-preview {
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background-color: rgba(248, 249, 250, 0.7);
+            border-radius: 10px;
+            border-left: 4px solid var(--primary-light);
+        }
+        
+        .article-preview h3 {
+            font-size: 1.3rem;
+            margin-bottom: 0.8rem;
+            color: var(--dark);
+        }
+        
+        .article-meta {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+        
+        .article-meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .article-meta svg {
+            width: 16px;
+            height: 16px;
+        }
+        
+        .view-article {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary);
+            font-weight: 500;
+            text-decoration: none;
+            margin-top: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .view-article:hover {
+            color: var(--primary-light);
+            text-decoration: underline;
+        }
+        
+        .view-article svg {
+            width: 16px;
+            height: 16px;
+            transition: transform 0.3s ease;
+        }
+        
+        .view-article:hover svg {
+            transform: translateX(3px);
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 3rem 0;
+        }
+        
+        .feature-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 1.8rem;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+            transition: all 0.5s ease;
+            text-align: center;
+            transform: perspective(1000px) rotateX(0deg) rotateY(0deg);
+        }
+        
+        .feature-card:hover {
+            transform: perspective(1000px) rotateX(0deg) rotateY(-5deg);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--gradient);
+            border-radius: 50%;
+            color: white;
+            font-size: 1.8rem;
+        }
+        
+        .feature-card h3 {
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+        
+        .feature-card p {
+            color: var(--gray);
+            font-size: 0.95rem;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+        }
+
+        .theme-toggle button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--gray);
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle button:hover {
+            color: var(--primary);
+            transform: rotate(30deg);
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e0e0e0;
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        .footer-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .footer-links a {
+            color: var(--gray);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary);
+        }
+
+        .footer-bottom {
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 1.5rem 1rem;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .subtitle {
+                font-size: 1rem;
+            }
+            
+            .card {
+                padding: 1.8rem 1.5rem;
+            }
+            
+            .tabs {
+                justify-content: center;
+            }
+            
+            .tab {
+                padding: 0.8rem 1.2rem;
+                font-size: 0.95rem;
+            }
+
+            .features {
+                grid-template-columns: 1fr;
+            }
+
+            .theme-toggle {
+                top: 1rem;
+                right: 1rem;
+            }
+        }
+        
+        /* Loading animation */
+        .loader {
+            display: none;
+            width: 50px;
+            height: 50px;
+            margin: 2rem auto;
+            border: 5px solid rgba(67, 97, 238, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Pulse animation for important elements */
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(67, 97, 238, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(67, 97, 238, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(67, 97, 238, 0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="theme-toggle">
+        <button id="themeToggle">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 3V4M12 20V21M21 12H20M4 12H3M18.364 5.636L17.656 6.344M6.344 17.656L5.636 18.364M18.364 18.364L17.656 17.656M6.344 6.344L5.636 5.636M16 12C16 14.2091 14.2091 16 12 16C9.79086 16 8 14.2091 8 12C8 9.79086 9.79086 8 12 8C14.2091 8 16 9.79086 16 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+    </div>
+
+    <div class="container">
+        <header class="animate__animated animate__fadeInDown">
+            <h1>Fake News Detector</h1>
+            <p class="subtitle">Use advanced AI to analyze news articles and determine their authenticity with confidence</p>
+        </header>
+        
+        <div class="features animate__animated animate__fadeIn">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 12L11 14L15 10M19 21V5C19 3.89543 18.1046 3 17 3H7C5.89543 3 5 3.89543 5 5V21L12 17L19 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <h3>AI-Powered Analysis</h3>
+                <p>Our advanced machine learning model evaluates multiple factors to detect fake news with high accuracy.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <h3>Real-time Results</h3>
+                <p>Get instant analysis whether you paste text or provide a URL to a news article.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 8V12L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <h3>Continuous Learning</h3>
+                <p>Our model improves over time as it processes more data and learns from new patterns.</p>
+            </div>
+        </div>
+        
+        <div class="card animate__animated animate__fadeInUp">
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('text')">Text Input</div>
+                <div class="tab" onclick="switchTab('url')">URL Input</div>
+            </div>
+            
+            <div class="messages">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} animate__animated animate__fadeIn">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    {% if category == 'success' %}
+                                        <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    {% elif category == 'error' %}
+                                        <path d="M10 14L12 12M12 12L14 10M12 12L10 10M12 12L14 14M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    {% else %}
+                                        <path d="M13 16H12V12H11M12 8H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    {% endif %}
+                                </svg>
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+            </div>
+            
+            <form method="POST" id="textForm" class="tab-content active" onsubmit="showLoader()">
+                <div class="input-group floating">
+                    <textarea name="text" id="text" placeholder=" " required></textarea>
+                    <label for="text">Paste news article text</label>
+                </div>
+                <button type="submit" class="btn btn-block pulse">Analyze Text</button>
+            </form>
+            
+            <form method="POST" action="/analyze_url" id="urlForm" class="tab-content" onsubmit="showLoader()">
+                <div class="input-group floating">
+                    <input type="url" name="url" id="url" placeholder=" " required>
+                    <label for="url">Enter news article URL</label>
+                </div>
+                <button type="submit" class="btn btn-block pulse">Analyze URL</button>
+            </form>
+            
+            <div class="loader" id="loader"></div>
+        </div>
+        
+        {% if result %}
+        <div class="card result-card {% if 'Real' in result %}real{% else %}fake{% endif %} animate__animated animate__fadeIn">
+            <h2 class="result-title">
+                {% if 'Real' in result %}
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#4cc9f0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                {% else %}
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10 14L12 12M12 12L14 10M12 12L10 10M12 12L14 14M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#f72585" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                {% endif %}
+                {{ result }}
+            </h2>
+            
+            {% if confidence %}
+                <div class="confidence-meter">
+                    <div class="gauge" style="--confidence: {{ confidence * 100 }};"></div>
+                    <span>{{ (confidence * 100)|round(1) }}% Confidence</span>
+                </div>
+            {% endif %}
+            
+            {% if article_info %}
+                <div class="article-preview">
+                    {% if article_info.title %}
+                        <h3>{{ article_info.title }}</h3>
+                    {% endif %}
+                    
+                    <div class="article-meta">
+                        {% if article_info.authors %}
+                            <span>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M12 14C8.13401 14 5 17.134 5 21H19C19 17.134 15.866 14 12 14Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                {{ article_info.authors|join(', ') }}
+                            </span>
+                        {% endif %}
+                        
+                        {% if article_info.publish_date %}
+                            <span>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M8 7V3M16 7V3M7 11H17M5 21H19C20.1046 21 21 20.1046 21 19V7C21 5.89543 20.1046 5 19 5H5C3.89543 5 3 5.89543 3 7V19C3 20.1046 3.89543 21 5 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                {{ article_info.publish_date }}
+                            </span>
+                        {% endif %}
+                    </div>
+                    
+                    {% if article_info.url %}
+                        <a href="{{ article_info.url }}" target="_blank" class="view-article">
+                            View original article
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M10 6H6C4.89543 6 4 6.89543 4 8V18C4 19.1046 4.89543 20 6 20H16C17.1046 20 18 19.1046 18 18V14M14 4H20M20 4V10M20 4L10 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+            
+            {% if processing_time %}
+                <p class="stats">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 8V12L15 15M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Analysis completed in {{ processing_time }}
+                </p>
+            {% endif %}
+        </div>
+        {% endif %}
+        
+        <div class="card animate__animated animate__fadeIn">
+            <form method="POST" action="/retrain">
+                <button type="submit" class="btn btn-secondary">Retrain Model with Latest Data</button>
+            </form>
+            {% if model_accuracy %}
+                <p class="model-stats">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 19V6L21 3V16M9 19C9 20.1046 7.65685 21 6 21C4.34315 21 3 20.1046 3 19C3 17.8954 4.34315 17 6 17C7.65685 17 9 17.8954 9 19ZM21 16C21 17.1046 19.6569 18 18 18C16.3431 18 15 17.1046 15 16C15 14.8954 16.3431 14 18 14C19.6569 14 21 14.8954 21 16ZM9 10L21 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Current model accuracy: <strong>{{ model_accuracy }}</strong>
+                </p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <footer class="animate__animated animate__fadeIn">
+        <div class="footer-content">
+            <div class="footer-logo">Fake News Detector</div>
+            <div class="footer-links">
+                <a href="#">About</a>
+                <a href="#">API</a>
+                <a href="#">Privacy</a>
+                <a href="#">Contact</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            © 2023 Fake News Detector | Powered by AI & Machine Learning
+        </div>
+    </footer>
+    
+    <script>
+        function switchTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName + 'Form').classList.add('active');
+            
+            // Update tab styling
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+        }
+        
+        function showLoader() {
+            document.getElementById('loader').style.display = 'block';
+            document.querySelectorAll('.btn').forEach(btn => {
+                btn.disabled = true;
+                btn.style.opacity = '0.7';
+            });
+        }
+
+        // Theme toggle functionality
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+        });
+
+        // Check for saved theme preference
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+        
+        // Add animation to elements when they come into view
+        document.addEventListener('DOMContentLoaded', () => {
+            const animateOnScroll = () => {
+                const elements = document.querySelectorAll('.card, .feature-card');
+                
+                elements.forEach(element => {
+                    const elementPosition = element.getBoundingClientRect().top;
+                    const screenPosition = window.innerHeight / 1.2;
+                    
+                    if (elementPosition < screenPosition) {
+                        element.classList.add('animate__animated', 'animate__fadeInUp');
+                    }
+                });
+            };
+            
+            window.addEventListener('scroll', animateOnScroll);
+            animateOnScroll(); // Run once on load
+        });
+    </script>
+</body>
+</html>
